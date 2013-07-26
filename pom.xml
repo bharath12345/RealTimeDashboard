@@ -13,6 +13,7 @@
     <properties>
         <slf4j.version>1.6.1</slf4j.version>
         <junit.version>4.11</junit.version>
+        <camel-version>2.10.3</camel-version>
     </properties>
 
     <build>
@@ -183,5 +184,7 @@
 
     <modules>
         <module>http-parser</module>
+        <module>http-server</module>
+        <module>http-client</module>
     </modules>
 </project>

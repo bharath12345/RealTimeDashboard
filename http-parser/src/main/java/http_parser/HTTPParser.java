@@ -39,4 +39,4 @@ public class HTTPParser extends http_parser.lolevel.HTTPParser {
     public void execute(ParserSettings settings, ByteBuffer data) {
         this.execute(settings.getLoLevelSettings(), data);
     }
-} 
+}
