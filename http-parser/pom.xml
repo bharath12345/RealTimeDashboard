@@ -11,7 +11,7 @@
     </parent>
 
     <artifactId>http-parser</artifactId>
-    <packaging>jar</packaging>
+    <packaging>ear</packaging>
     <name>HTTP Parser</name>
 
     <build>

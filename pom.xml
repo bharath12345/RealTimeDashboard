@@ -186,5 +186,6 @@
         <module>http-parser</module>
         <module>http-server</module>
         <module>http-client</module>
+        <module>http-ear</module>
     </modules>
 </project>
