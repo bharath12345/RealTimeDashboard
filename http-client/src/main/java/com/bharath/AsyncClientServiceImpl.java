@@ -9,6 +9,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.ejb.Singleton;
+import javax.ejb.Startup;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import java.io.IOException;
@@ -20,11 +22,13 @@ import java.lang.management.ManagementFactory;
  * Date: 26/07/13
  * Time: 5:56 PM
  */
+@Startup
+@Singleton
 public class AsyncClientServiceImpl implements AsyncClientService {
 
     private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-    public static final String NAME = "com.bharath.http:service=AsyncClientServiceImpl";
+    private static final String NAME = "com.bharath.http.client:service=AsyncClientServiceImpl";
     private MBeanServer server;
     private ObjectName objectName;
 
@@ -64,7 +68,7 @@ public class AsyncClientServiceImpl implements AsyncClientService {
         }
     }
 
-    public void fireParallelPostRequests(long requestCounter) {
+    private void fireParallelPostRequests(long requestCounter) {
         for(int i=0;i<requestCounter;i++) {
             try {
                 asyncHttpClient.preparePost(baseUrl).setBody("Hello World").execute(new ResponseHandler());

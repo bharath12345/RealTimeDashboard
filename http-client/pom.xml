@@ -10,18 +10,21 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>http-client</artifactId>
-    <packaging>ear</packaging>
+    <packaging>ejb</packaging>
 
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>2.4</version>
+                <artifactId>maven-ejb-plugin</artifactId>
+                <version>2.3</version>
                 <configuration>
-                    <includes>
-                        <include>**/*</include>
-                    </includes>
+                    <ejbVersion>3.0</ejbVersion>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                        </manifest>
+                    </archive>
                 </configuration>
             </plugin>
             <plugin>
@@ -33,10 +36,18 @@
     </build>
 
     <dependencies>
+        <!-- NETTY Async Web Client ******************************************************************************** -->
         <dependency>
             <groupId>com.ning</groupId>
             <artifactId>async-http-client</artifactId>
             <version>1.7.18</version>
+        </dependency>
+
+        <!-- EJB *************************************************************************************************** -->
+        <dependency>
+            <groupId>org.jboss.spec.javax.ejb</groupId>
+            <artifactId>jboss-ejb-api_3.1_spec</artifactId>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>

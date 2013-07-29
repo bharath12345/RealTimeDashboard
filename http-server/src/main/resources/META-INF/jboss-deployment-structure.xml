@@ -2,7 +2,6 @@
 <jboss-deployment-structure>
     <deployment>
         <dependencies>
-            <module name="javax.servlet.api" export="true" slot="main"/>
         </dependencies>
     </deployment>
 </jboss-deployment-structure>

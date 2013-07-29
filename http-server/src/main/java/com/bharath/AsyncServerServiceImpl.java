@@ -36,7 +36,7 @@ public class AsyncServerServiceImpl implements AsyncServerService {
 
     private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-    public static final String NAME = "com.bharath.http:service=AsyncServerServiceImpl";
+    private static final String NAME = "com.bharath.http.server:service=AsyncServerServiceImpl";
     private MBeanServer server;
     private ObjectName objectName;
 
