@@ -3,21 +3,22 @@ package com.bharath;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.ejb.EJB;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
+import javax.jms.*;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
-import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.lang.management.ManagementFactory;
+import java.util.Map;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
+import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.camel.AsyncCallback;
 import org.apache.camel.AsyncProcessor;
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.converter.stream.InputStreamCache;
 import org.apache.camel.impl.DefaultCamelContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +44,14 @@ public class AsyncServerServiceImpl implements AsyncServerService {
     private int port = 8123;
     private String url = "realtime";
 
+    private ConcurrentLinkedQueue queue = Queue.getQueue();
+
+    private ActiveMQConnectionFactory connectionFactory;
+    private Topic topic;
+    private Session session;
+    private MessageProducer producer;
+    private Connection connection;
+
     @PostConstruct
     public void start() {
         try {
@@ -61,6 +70,7 @@ public class AsyncServerServiceImpl implements AsyncServerService {
         HttpRouteBuilder httpRouteBuilder =  new HttpRouteBuilder(camelContext,port,url);
         try {
             camelContext.addRoutes(httpRouteBuilder);
+            camelContext.addRoutes(new JsonRoute());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -70,6 +80,24 @@ public class AsyncServerServiceImpl implements AsyncServerService {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        connectionFactory = new ActiveMQConnectionFactory(JmsConstants.BROKER_URL);
+
+        try {
+            // create the connection factory
+            connection = connectionFactory.createConnection();
+            //Connection connection = connectionFactory.createConnection();
+            connection.start();
+
+            // Create the session and topic
+            session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+            topic = session.createTopic(JmsConstants.TOPIC_HTTP_OBJECT_MSG);
+            producer = session.createProducer(topic);
+            producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+
     }
 
     @PreDestroy
@@ -114,8 +142,47 @@ public class AsyncServerServiceImpl implements AsyncServerService {
 
         @Override
         public boolean process(Exchange httpExchange, AsyncCallback callback){
-            System.out.println("process in callback handler");
-            httpExchange.getIn().getHeaders();
+            //System.out.println("process in callback handler");
+
+            Map<String, Object> headers = httpExchange.getIn().getHeaders();
+
+            Request request = new Request();
+            String httpUri = (String)headers.get(Exchange.HTTP_URI);
+            request.setHttpUri(httpUri);
+
+            String httpMethod = (String)headers.get(Exchange.HTTP_METHOD);
+            request.setHttpMethod(httpMethod);
+
+            String httpPath = (String)headers.get(Exchange.HTTP_PATH);
+            request.setHttpPath(httpPath);
+
+            String httpQuery = (String)headers.get(Exchange.HTTP_QUERY);
+            request.setHttpQuery(httpQuery);
+
+            //int responseCode = (Integer)headers.get(Exchange.HTTP_RESPONSE_CODE);
+            //request.setResponseCode(responseCode);
+
+            String httpCharacterEncoding = (String)headers.get(Exchange.HTTP_CHARACTER_ENCODING);
+            request.setHttpCharacterEncoding(httpCharacterEncoding);
+
+            String httpContentType = (String)headers.get(Exchange.CONTENT_TYPE);
+            request.setHttpContentType(httpContentType);
+
+            String httpContentEncoding = (String)headers.get(Exchange.CONTENT_ENCODING);
+            request.setHttpContentEncoding(httpContentEncoding);
+
+            String httpProtocolVersion = (String)headers.get(Exchange.HTTP_PROTOCOL_VERSION);
+            request.setHttpProtocolVersion(httpProtocolVersion);
+
+            System.out.println("Request = " + request.toString());
+            //queue.add(request);
+            try {
+                Message msg = session.createObjectMessage(request);
+                producer.send(msg);
+            } catch (JMSException e) {
+                e.printStackTrace();
+            }
+
             callback.done(true);
             return true;
         }
