@@ -5,17 +5,21 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
+import javax.jms.ConnectionFactory;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import java.lang.invoke.MethodHandles;
 import java.lang.management.ManagementFactory;
 import java.util.Map;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
-import org.apache.camel.*;
+import org.apache.activemq.camel.component.ActiveMQComponent;
+import org.apache.camel.AsyncCallback;
+import org.apache.camel.AsyncProcessor;
+import org.apache.camel.CamelContext;
+import org.apache.camel.Exchange;
+import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.component.jms.JmsComponent;
 import org.apache.camel.impl.DefaultCamelContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,11 +47,10 @@ public class AsyncServerServiceImpl implements AsyncServerService {
 
     //private ConcurrentLinkedQueue queue = Queue.getQueue();
 
-    private ActiveMQConnectionFactory connectionFactory;
-    private ProducerTemplate producerTemplate;
-
-    private static final String JMS_OBJECT_TOPIC = JmsConstants.TOPIC_HTTP_OBJECT_MSG + ":topic:" + JmsConstants.TOPIC_HTTP_OBJECT_MSG;
-    private static final String JMS_JSON_TOPIC = JmsConstants.TOPIC_HTTP_JSON_MSG + ":topic:" + JmsConstants.TOPIC_HTTP_JSON_MSG;
+    private JmsDataPublisher requestObjectDataPublisher;
+    private JmsDataReceiver requestObjectDataReceiver;
+    private RequestObjectReceiverJsonPublisher requestObjectReceiverJsonPublisher;
+    private ConnectionFactory connectionFactory;
 
     @PostConstruct
     public void start() {
@@ -61,16 +64,18 @@ public class AsyncServerServiceImpl implements AsyncServerService {
         }
 
         camelContext = new DefaultCamelContext();
-        camelContext.setTracing(false);
+        camelContext.setTracing(true);
+
+        connectionFactory = new ActiveMQConnectionFactory(JmsConstants.BROKER_URL);
+        camelContext.addComponent(JmsConstants.TOPIC_HTTP_JSON_MSG, ActiveMQComponent.jmsComponentAutoAcknowledge(connectionFactory));
 
         //add the routes
         HttpAsyncWebRouteBuilder httpAsyncWebRouteBuilder = new HttpAsyncWebRouteBuilder(camelContext, port, url);
-        HttpJmsObjectToJsonRouteBuilder httpJmsObjectToJsonRouteBuilder = new HttpJmsObjectToJsonRouteBuilder(camelContext);
+        JmsToWebSocketRouteBuilder jmsToWebSocketRouteBuilder = new JmsToWebSocketRouteBuilder(camelContext);
 
         try {
             camelContext.addRoutes(httpAsyncWebRouteBuilder);
-            camelContext.addRoutes(httpJmsObjectToJsonRouteBuilder);
-            camelContext.addRoutes(new JsonRoute());
+            camelContext.addRoutes(jmsToWebSocketRouteBuilder);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -81,13 +86,10 @@ public class AsyncServerServiceImpl implements AsyncServerService {
             e.printStackTrace();
         }
 
-        connectionFactory = new ActiveMQConnectionFactory(JmsConstants.BROKER_URL);
+        requestObjectReceiverJsonPublisher = new RequestObjectReceiverJsonPublisher();
 
-        camelContext.addComponent(JmsConstants.TOPIC_HTTP_OBJECT_MSG, JmsComponent.jmsComponentAutoAcknowledge(connectionFactory));
-        camelContext.addComponent(JmsConstants.TOPIC_HTTP_JSON_MSG, JmsComponent.jmsComponentAutoAcknowledge(connectionFactory));
-
-        producerTemplate = camelContext.createProducerTemplate();
-
+        requestObjectDataReceiver = new JmsDataReceiver(JmsConstants.BROKER_URL, JmsConstants.TOPIC_HTTP_OBJECT_MSG, requestObjectReceiverJsonPublisher);
+        requestObjectDataPublisher = new JmsDataPublisher(JmsConstants.BROKER_URL, JmsConstants.TOPIC_HTTP_OBJECT_MSG);
     }
 
     @PreDestroy
@@ -96,13 +98,21 @@ public class AsyncServerServiceImpl implements AsyncServerService {
             if (server != null && objectName != null) {
                 server.unregisterMBean(objectName);
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-            try {
-                camelContext.stop();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        try {
+            camelContext.stop();
 
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        try {
+            requestObjectDataReceiver.shutdown();
+            requestObjectDataPublisher.shutdown();
+            requestObjectReceiverJsonPublisher.shutdown();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -123,7 +133,7 @@ public class AsyncServerServiceImpl implements AsyncServerService {
         @Override
         public void configure() throws Exception {
             final String httpEndpoint = JETTY_HTTP_COMPONENT + port + "/" + serverName;
-            from(httpEndpoint).process(new HttpHeaderProcessor());
+            from(httpEndpoint).routeId("fromHttpToJms").process(new HttpHeaderProcessor());
             logger.info("Added HTTP Route " + httpEndpoint);
         }
     }
@@ -132,8 +142,6 @@ public class AsyncServerServiceImpl implements AsyncServerService {
 
         @Override
         public boolean process(Exchange httpExchange, AsyncCallback callback) {
-            //System.out.println("process in callback handler");
-
             Map<String, Object> headers = httpExchange.getIn().getHeaders();
             process(headers);
 
@@ -179,48 +187,21 @@ public class AsyncServerServiceImpl implements AsyncServerService {
 
             System.out.println("Request = " + request.toString());
             //queue.add(request);
-            producerTemplate.sendBody(JMS_OBJECT_TOPIC, request);
+            requestObjectDataPublisher.sendObject(request);
 
         }
     }
 
-    class HttpJmsObjectToJsonRouteBuilder extends RouteBuilder {
-        private final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+    class JmsToWebSocketRouteBuilder extends RouteBuilder {
 
-        HttpJmsObjectToJsonRouteBuilder(CamelContext context) {
+        JmsToWebSocketRouteBuilder(CamelContext context) {
             super(context);
         }
 
         @Override
         public void configure() throws Exception {
-            from(JMS_OBJECT_TOPIC).process(new JmsObjectToJsonProcessor());
-            logger.info("Added JMS TO JMS Route " + JMS_OBJECT_TOPIC);
-        }
-
-    }
-
-    class JmsObjectToJsonProcessor implements Processor {
-
-        @Override
-        public void process(Exchange httpExchange) throws Exception {
-            System.out.println("process in NON callback handler");
-            Request request = (Request) httpExchange.getIn().getBody();
-            String textMsg = request.toString();
-            producerTemplate.sendBody(JMS_JSON_TOPIC, textMsg);
-        }
-    }
-
-    class JsonRoute extends RouteBuilder {
-
-        @Override
-        public void configure() throws Exception {
-            from(JMS_JSON_TOPIC).routeId("fromJMStoWebSocketQuotes")
-                    .log(LoggingLevel.DEBUG, ">> Http header received : ${body}")
-                    .process(new Processor() {
-                        public void process(Exchange exchange) throws Exception {
-                            System.out.println("We just downloaded: " + exchange.getIn().getHeader("CamelFileName"));
-                        }
-                    })
+            from(JmsConstants.TOPIC_HTTP_JSON_MSG + ":topic:" + JmsConstants.TOPIC_HTTP_JSON_MSG).routeId("fromJMStoWebSocket")
+                    .log(LoggingLevel.INFO, ">> data received : ${body}")
                     .to("websocket://0.0.0.0:9090/httpJsonHeaderTopic?sendToAll=true")
                     .to("file:/tmp/httpHeaders.json");
         }

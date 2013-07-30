@@ -7,7 +7,7 @@ package com.bharath;
  */
 public class JmsConstants {
 
-    public static final String BROKER_URL = "vm://localhost:61616";
-    public static final String TOPIC_HTTP_OBJECT_MSG = "HTTP_OBJECT";
-    public static final String TOPIC_HTTP_JSON_MSG = "HTTP_JSON";
+    public static final String BROKER_URL = "vm://localhost";//?broker.persistent=false
+    public static final String TOPIC_HTTP_OBJECT_MSG = "HTTPOBJECT";
+    public static final String TOPIC_HTTP_JSON_MSG = "HTTPJSON";
 }

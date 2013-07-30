@@ -14,7 +14,7 @@
         <slf4j.version>1.6.1</slf4j.version>
         <junit.version>4.11</junit.version>
         <camel-version>2.11.0</camel-version>
-        <activemq-version>5.8.0</activemq-version>
+        <activemq-version>5.7.0</activemq-version>
     </properties>
 
     <build>
