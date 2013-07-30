@@ -20,7 +20,8 @@
         <link rel="stylesheet" type="test/css" href="./js/gridx/resources/claro/Gridx.css"/>
 
         <!-- List of JS. First one should always be Dojo -->
-        <script type="text/javascript" data-dojo-config="async: 1, tlmSiblingOfDojo: 0, isDebug: 1" src="./js/dojo/dojo.js"></script>
+        <script type="text/javascript" data-dojo-config="async: 1, tlmSiblingOfDojo: 0, isDebug: 1"
+        src="./js/dojo/dojo.js"></script>
 
         </head>
         <body class="claro">

@@ -19,14 +19,15 @@
 define([ 'dojo/has', 'require' ], function (has, require) {
 
     /*
-        Begin Dashboards
+     Begin Dashboards
      */
     if (has('host-browser')) {
 
-        require([''dojo/domReady!'],
-            function () {
+        require(['dashboard/Start', 'dojo/domReady!'],
+            function (Start) {
 
-
+                var start = new Start();
+                start.start();
 
             });
     }
