@@ -1,0 +1,370 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>realtime</artifactId>
+        <groupId>com.bharath</groupId>
+        <version>1.0</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>http-realtime-grid</artifactId>
+    <packaging>war</packaging>
+
+        <properties>
+            <dojo.version>1.9.0</dojo.version>
+            <dojoSrc>${basedir}/src/main/js/dojo-release-${dojo.version}-src</dojoSrc>
+            <doh-dir>${basedir}/src/main/js/util/doh</doh-dir>
+            <shrinksafe-dir>${basedir}/src/main/js/util/shrinksafe</shrinksafe-dir>
+            <closure-dir>${basedir}/src/main/js/util/closureCompiler</closure-dir>
+            <dojo-build-dir>${basedir}/src/main/js/util/buildscripts</dojo-build-dir>
+            <release-dir>${basedir}/target/dashboard/js</release-dir>
+
+            <gui.target.location>${basedir}${file.separator}target</gui.target.location>
+            <gui.target.gui.location>${basedir}${file.separator}target${file.separator}dashboard</gui.target.gui.location>
+            <js-dir>${basedir}/src/main/js</js-dir>
+
+            <dojo.source.basename>dojo-release-${dojo.version}-src</dojo.source.basename>
+            <dojo.source.local.unpacked.location>${gui.target.location}${file.separator}${dojo.source.basename}
+            </dojo.source.local.unpacked.location>
+            <dojo.build.location>${dojo.source.local.unpacked.location}${file.separator}util${file.separator}buildscripts
+            </dojo.build.location>
+
+        </properties>
+
+        <profiles>
+
+            <!-- ************************************************** -->
+            <!-- The DEFAULT BUILD Profile - VERY SLOW BUILD -->
+            <!-- To Turn it OFF: mvn -Dbuild-all=false -->
+            <!-- ************************************************** -->
+            <profile>
+                <id>build-all</id>
+                <activation>
+                    <activeByDefault>false</activeByDefault>
+                    <property>
+                        <name>!skipFullBuild</name>
+                    </property>
+                </activation>
+                <build>
+                    <finalName>dashboard</finalName>
+                    <plugins>
+                        <plugin>
+                            <artifactId>maven-clean-plugin</artifactId>
+                            <version>2.5</version>
+                            <executions>
+                                <execution>
+                                    <id>clean-resources</id>
+                                    <phase>clean</phase>
+                                    <goals>
+                                        <goal>clean</goal>
+                                    </goals>
+                                    <configuration>
+                                        <excludeDefaultDirectories>true</excludeDefaultDirectories>
+                                        <filesets>
+                                            <fileset>
+                                                <directory>${js-dir}</directory>
+                                                <includes>
+                                                    <include>dijit</include>
+                                                    <include>dojo</include>
+                                                    <include>dojox</include>
+                                                    <include>util</include>
+                                                    <include>${dojo.source.basename}</include>
+                                                </includes>
+                                                <followSymlinks>false</followSymlinks>
+                                            </fileset>
+                                        </filesets>
+                                    </configuration>
+                                </execution>
+                                <execution>
+                                    <id>clean-js</id>
+                                    <phase>prepare-package</phase>
+                                    <goals>
+                                        <goal>clean</goal>
+                                    </goals>
+                                    <configuration>
+                                        <excludeDefaultDirectories>true</excludeDefaultDirectories>
+                                        <filesets>
+                                            <fileset>
+                                                <directory>${release-dir}/dashboard</directory>
+                                                <includes>
+                                                    <include>**/*uncompressed.js</include>
+                                                </includes>
+                                                <followSymlinks>true</followSymlinks>
+                                            </fileset>
+                                            <fileset>
+                                                <directory>${release-dir}/dojo</directory>
+                                                <includes>
+                                                    <include>**/*uncompressed.js</include>
+                                                </includes>
+                                                <followSymlinks>true</followSymlinks>
+                                            </fileset>
+                                            <fileset>
+                                                <directory>${release-dir}/dijit</directory>
+                                                <includes>
+                                                    <include>**/*uncompressed.js</include>
+                                                </includes>
+                                                <followSymlinks>true</followSymlinks>
+                                            </fileset>
+                                            <fileset>
+                                                <directory>${release-dir}/dojox</directory>
+                                                <includes>
+                                                    <include>**/*uncompressed.js</include>
+                                                </includes>
+                                                <followSymlinks>true</followSymlinks>
+                                            </fileset>
+                                            <fileset>
+                                                <directory>${release-dir}/gridx</directory>
+                                                <includes>
+                                                    <include>**/*uncompressed.js</include>
+                                                </includes>
+                                                <followSymlinks>true</followSymlinks>
+                                            </fileset>
+                                        </filesets>
+                                    </configuration>
+                                </execution>
+                            </executions>
+                        </plugin>
+
+                        <plugin>
+                            <groupId>org.apache.maven.plugins</groupId>
+                            <artifactId>maven-dependency-plugin</artifactId>
+                            <version>2.5.1</version>
+                            <executions>
+                                <execution>
+                                    <id>unpackDojo</id>
+                                    <phase>generate-sources</phase>
+                                    <goals>
+                                        <goal>unpack</goal>
+                                    </goals>
+                                    <configuration>
+                                        <artifactItems>
+                                            <artifactItem>
+                                                <groupId>org.dojotoolkit</groupId>
+                                                <artifactId>dojo</artifactId>
+                                                <classifier>sources</classifier>
+                                                <version>${dojo.version}</version>
+                                                <type>zip</type>
+                                                <outputDirectory>${js-dir}</outputDirectory>
+                                            </artifactItem>
+                                        </artifactItems>
+                                    </configuration>
+                                </execution>
+                            </executions>
+                        </plugin>
+
+                        <plugin>
+                            <artifactId>maven-antrun-plugin</artifactId>
+                            <!--version>1.7</version-->
+                            <executions>
+                                <execution>
+                                    <id>Copy Dojo</id>
+                                    <configuration>
+                                        <tasks>
+                                            <parallel>
+                                                <copy todir="${js-dir}/" failonerror="false">
+                                                    <fileset dir="${dojoSrc}">
+                                                        <include name="dijit/"/>
+                                                    </fileset>
+                                                </copy>
+                                                <copy todir="${js-dir}/" failonerror="false">
+                                                    <fileset dir="${dojoSrc}">
+                                                        <include name="dojox/"/>
+                                                    </fileset>
+                                                </copy>
+                                                <copy todir="${js-dir}/" failonerror="false">
+                                                    <fileset dir="${dojoSrc}">
+                                                        <include name="dojo/"/>
+                                                    </fileset>
+                                                </copy>
+                                                <copy todir="${js-dir}/" failonerror="false">
+                                                    <fileset dir="${dojoSrc}">
+                                                        <include name="util/"/>
+                                                    </fileset>
+                                                </copy>
+                                            </parallel>
+                                            <delete dir="${dojoSrc}" quiet="true"/>
+                                        </tasks>
+                                    </configuration>
+                                    <phase>process-sources</phase>
+                                    <goals>
+                                        <goal>run</goal>
+                                    </goals>
+                                </execution>
+                                <execution>
+                                    <id>Delete resource directories AGAIN to make sure</id>
+                                    <configuration>
+                                        <tasks>
+                                            <parallel>
+                                                <delete dir="${js-dir}/dojo" quiet="true"/>
+                                                <delete dir="${js-dir}/dijit" quiet="true"/>
+                                                <delete dir="${js-dir}/dojox" quiet="true"/>
+                                                <delete dir="${js-dir}/util" quiet="true"/>
+                                                <delete dir="${js-dir}/${dojo.source.basename}" quiet="true"/>
+                                                <delete dir="${basedir}/target" quiet="true"/>
+                                            </parallel>
+                                        </tasks>
+                                    </configuration>
+                                    <phase>clean</phase>
+                                    <goals>
+                                        <goal>run</goal>
+                                    </goals>
+                                </execution>
+                                <execution>
+                                    <id>AppsOne dojo ${dojo.version} Custom Build</id>
+                                    <phase>compile</phase>
+                                    <configuration>
+                                        <tasks>
+                                            <parallel>
+                                                <java classname="org.mozilla.javascript.tools.shell.Main"
+                                                      fork="true" maxmemory="512m" failonerror="false"
+                                                      classpath="${shrinksafe-dir}/js.jar${path.separator}${closure-dir}/compiler.jar${path.separator}${shrinksafe-dir}/shrinksafe.jar">
+                                                    <arg value="${js-dir}/dojo/dojo.js"/>
+                                                    <arg value="baseUrl=${js-dir}/dojo"/>
+                                                    <arg value="load=build"/>
+                                                    <arg line="--profile ${basedir}/dashboard.profile.js"/>
+                                                    <arg value="--release"/>
+                                                </java>
+                                            </parallel>
+                                        </tasks>
+                                    </configuration>
+                                    <goals>
+                                        <goal>run</goal>
+                                    </goals>
+                                </execution>
+                            </executions>
+                        </plugin>
+
+                        <plugin>
+                            <groupId>org.apache.maven.plugins</groupId>
+                            <artifactId>maven-war-plugin</artifactId>
+                            <version>2.3</version>
+                            <configuration>
+                            </configuration>
+                        </plugin>
+                    </plugins>
+                </build>
+            </profile>
+
+            <!-- ***************************************************************************** -->
+            <!-- To build ONLY the COMPRESSED JS - FAST FAST FAST BUILD                        -->
+            <!-- Important: Using this option ASSUMES that UNZIPED Dojo is available in        -->
+            <!-- /src/main/js. It does not delete the extracted                                -->
+            <!-- dojo from files from /src/main/resources either. This is so to aid            -->
+            <!-- faster development cycles (extracting and copying Dojo is slow). Be           -->
+            <!-- COGNIZANT of this when you use this option                                    -->
+            <!-- USAGE: mvn clean install -DskipFullBuild -Dbuild=postUnZip                    -->
+            <!-- ***************************************************************************** -->
+            <profile>
+                <id>build-compressed</id>
+                <activation>
+                    <activeByDefault>false</activeByDefault>
+                    <property>
+                        <name>build</name>
+                        <value>postUnZip</value>
+                    </property>
+                </activation>
+                <build>
+                    <finalName>dashboard</finalName>
+                    <plugins>
+                        <plugin>
+                            <artifactId>maven-clean-plugin</artifactId>
+                            <version>2.5</version>
+                            <executions>
+                                <execution>
+                                    <id>clean-js</id>
+                                    <phase>prepare-package</phase>
+                                    <goals>
+                                        <goal>clean</goal>
+                                    </goals>
+                                    <configuration>
+                                        <excludeDefaultDirectories>true</excludeDefaultDirectories>
+                                        <filesets>
+                                            <fileset>
+                                                <directory>${release-dir}/dashboard</directory>
+                                                <includes>
+                                                    <include>**/*uncompressed.js</include>
+                                                </includes>
+                                                <followSymlinks>true</followSymlinks>
+                                            </fileset>
+                                            <fileset>
+                                                <directory>${release-dir}/dojo</directory>
+                                                <includes>
+                                                    <include>**/*uncompressed.js</include>
+                                                </includes>
+                                                <followSymlinks>true</followSymlinks>
+                                            </fileset>
+                                            <fileset>
+                                                <directory>${release-dir}/dijit</directory>
+                                                <includes>
+                                                    <include>**/*uncompressed.js</include>
+                                                </includes>
+                                                <followSymlinks>true</followSymlinks>
+                                            </fileset>
+                                            <fileset>
+                                                <directory>${release-dir}/dojox</directory>
+                                                <includes>
+                                                    <include>**/*uncompressed.js</include>
+                                                </includes>
+                                                <followSymlinks>true</followSymlinks>
+                                            </fileset>
+                                            <fileset>
+                                                <directory>${release-dir}/gridx</directory>
+                                                <includes>
+                                                    <include>**/*uncompressed.js</include>
+                                                </includes>
+                                                <followSymlinks>true</followSymlinks>
+                                            </fileset>
+                                        </filesets>
+                                    </configuration>
+                                </execution>
+                            </executions>
+                        </plugin>
+
+                        <plugin>
+                            <artifactId>maven-antrun-plugin</artifactId>
+                            <!--version>1.7</version-->
+                            <executions>
+                                <execution>
+                                    <id>AppsOne dojo ${dojo.version} Custom Build</id>
+                                    <phase>compile</phase>
+                                    <configuration>
+                                        <tasks>
+                                            <parallel>
+                                                <java classname="org.mozilla.javascript.tools.shell.Main"
+                                                      fork="true" maxmemory="512m" failonerror="false"
+                                                      classpath="${shrinksafe-dir}/js.jar${path.separator}${closure-dir}/compiler.jar${path.separator}${shrinksafe-dir}/shrinksafe.jar">
+                                                    <arg value="${js-dir}/dojo/dojo.js"/>
+                                                    <arg value="baseUrl=${js-dir}/dojo"/>
+                                                    <arg value="load=build"/>
+                                                    <arg line="--profile ${basedir}/dashboard.profile.js"/>
+                                                    <arg value="--release"/>
+                                                </java>
+                                            </parallel>
+                                        </tasks>
+                                    </configuration>
+                                    <goals>
+                                        <goal>run</goal>
+                                    </goals>
+                                </execution>
+                            </executions>
+                        </plugin>
+
+                        <plugin>
+                            <groupId>org.apache.maven.plugins</groupId>
+                            <artifactId>maven-war-plugin</artifactId>
+                            <version>2.3</version>
+                            <configuration>
+                            </configuration>
+                        </plugin>
+                    </plugins>
+                </build>
+            </profile>
+        </profiles>
+
+        <dependencies>
+            <!-- This Contains NO Java code - hence NO dependencies ================================================== -->
+        </dependencies>
+
+</project>

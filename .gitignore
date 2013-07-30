@@ -11,13 +11,15 @@ out/
 *.project
 *.iml
 
-uiJS/src/main/js/dojo/
-uiJS/src/main/js/dijit/
-uiJS/src/main/js/dojox/
-uiJS/src/main/js/util/
-uiJS/src/main/js/uncompressed/
-uiJS/src/main/js/dojo-release-1.8.1-src
-uiJS/src/main/js/dojo-release-1.8.3-src
+http-realtime-grid/src/main/js/dojo/
+http-realtime-grid/src/main/js/dijit/
+http-realtime-grid/src/main/js/dojox/
+http-realtime-grid/src/main/js/util/
+http-realtime-grid/src/main/js/uncompressed/
+http-realtime-grid/src/main/js/dojo-release-1.8.1-src
+http-realtime-grid/src/main/js/dojo-release-1.8.3-src
+http-realtime-grid/src/main/js/dojo-release-1.9.0-src
+http-realtime-grid/src/main/js/dojo-release-1.9.1-src
 
 # Compiled source #
 ###################

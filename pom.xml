@@ -188,5 +188,6 @@
         <module>http-server</module>
         <module>http-client</module>
         <module>http-ear</module>
+        <module>http-realtime-grid</module>
     </modules>
 </project>
