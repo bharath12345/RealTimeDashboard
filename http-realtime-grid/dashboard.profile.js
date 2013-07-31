@@ -116,8 +116,7 @@ var profile = (function () {
 
         depsDumpFilename:"dashboard.json",
         depsDumpDotFilename:"dashboard.dot",
-        dotModules:"dashboard/DashboardRoutes, dashboard/DashboardAccordion, dashboard/DashboardView," +
-            "dashboard/views/noc/NocAcordion, dashboard/views/noc/NocView"
+        dotModules:""
 
     };
 })();

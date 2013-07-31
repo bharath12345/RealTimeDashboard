@@ -55,6 +55,12 @@
             <version>1.0</version>
             <type>ejb</type>
         </dependency>
+        <dependency>
+            <groupId>com.bharath</groupId>
+            <artifactId>http-realtime-grid</artifactId>
+            <version>1.0</version>
+            <type>war</type>
+        </dependency>
 
     </dependencies>
 

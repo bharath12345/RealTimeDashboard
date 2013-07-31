@@ -1,0 +1,23 @@
+{
+    "name":"dashboard",
+    "description":"Dashboard",
+    "version":"1",
+    "keywords":["JavaScript", "Dojo", "Toolkit", "DojoX", "Dashboard"],
+    "maintainers":[
+        {
+            "name":"Bharadwaj Narasimha"
+        }
+    ],
+    "contributors":[
+        {
+            "name":"Bharadwaj Narasimha"
+        }
+    ],
+    "dependencies":{
+        "dojo":"~1.9.1",
+        "dijit":"~1.9.1",
+        "dojox":"~1.9.1"
+    },
+    "main":"Dashboard",
+    "dojoBuild":"dashboard.profile.js"
+}

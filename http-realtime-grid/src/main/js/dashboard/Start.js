@@ -1,7 +1,7 @@
 define(["dojo/_base/declare", "dojo/request/xhr", "dojo/dom-construct", "dijit/layout/BorderContainer",
-    "dijit/layout/ContentPane"],
+    "dijit/layout/ContentPane", "dashboard/GridX"],
 
-    function (declare, xhr, domConstruct, BorderContainer, ContentPane) {
+    function (declare, xhr, domConstruct, BorderContainer, ContentPane, GridX) {
 
         var Start = declare("dashboard.Start", null, {
 
@@ -71,7 +71,7 @@ define(["dojo/_base/declare", "dojo/request/xhr", "dojo/dom-construct", "dijit/l
                 }
 
                 try {
-                    this.grid = new Grid();
+                    this.grid = new GridX();
                     this.grid.setColumnMeta(columnMeta);
                     this.grid.setData(gridata);
                     this.grid.render(div);

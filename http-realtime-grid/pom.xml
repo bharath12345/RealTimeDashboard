@@ -13,7 +13,7 @@
     <packaging>war</packaging>
 
         <properties>
-            <dojo.version>1.9.0</dojo.version>
+            <dojo.version>1.9.1</dojo.version>
             <dojoSrc>${basedir}/src/main/js/dojo-release-${dojo.version}-src</dojoSrc>
             <doh-dir>${basedir}/src/main/js/util/doh</doh-dir>
             <shrinksafe-dir>${basedir}/src/main/js/util/shrinksafe</shrinksafe-dir>
