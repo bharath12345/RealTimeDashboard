@@ -4,9 +4,12 @@ define(["dojo/_base/declare", "dojo/i18n",
     "gridx/modules/Bar", "gridx/support/Summary", "gridx/support/DropDownPager", "gridx/support/QuickFilter",
     "gridx/support/LinkSizer", "gridx/support/LinkPager"],
 
-    function (declare, i18n, Memory, lang, Observable, Grid, Cache, SingleSort, ColumnResizer, Pagination, Filter, Bar, Summary, DropDownPager, QuickFilter, LinkSizer, LinkPager) {
+    function (declare, i18n,
+        Memory, lang, Observable, Grid, Cache,
+        SingleSort, ColumnResizer, Pagination, Filter,
+        Bar, Summary, DropDownPager, QuickFilter, LinkSizer, LinkPager) {
 
-        var GridX = declare("GridX", null, {
+        var GridX = declare("dashboard.GridX", null, {
 
             setColumnMeta:function (columnMeta) {
                 this.columnMeta = columnMeta;

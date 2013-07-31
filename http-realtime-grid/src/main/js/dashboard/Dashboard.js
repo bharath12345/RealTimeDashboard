@@ -19,6 +19,12 @@
 define([ 'dojo/has', 'require' ], function (has, require) {
 
     /*
+    Initialize Global Data Structures
+    */
+
+    dashboard = {};
+
+    /*
      Begin Dashboards
      */
     if (has('host-browser')) {
