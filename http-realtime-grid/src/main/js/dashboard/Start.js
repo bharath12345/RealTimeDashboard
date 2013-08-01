@@ -5,23 +5,25 @@ define(["dojo/_base/declare", "dojo/request/xhr", "dojo/dom-construct", "dijit/l
 
         var Start = declare("dashboard.Start", null, {
 
-            grid: null,
-
             start:function () {
 
                 var topBC = new BorderContainer({
                     design:"headline",
                     liveSplitters:false,
                     persist:true,
-                    gutters:false
+                    gutters:false,
+                    style: "width: 100%; height: 100%;"
                 });
 
                 var cp = new ContentPane({
                     region:"center",
-                    splitter:false
+                    splitter:false,
+                    style: "width: 100%; height: 100%;"
                 });
 
                 topBC.addChild(cp);
+                topBC.placeAt(document.body);
+
                 topBC.startup();
                 topBC.resize();
 
@@ -42,6 +44,9 @@ define(["dojo/_base/declare", "dojo/request/xhr", "dojo/dom-construct", "dijit/l
                 socket.onmessage = function (msg) {
                     console.log('websocket message' + msg);
                     console.log('websocket data = ' + msg.data);
+                    
+                    var json = dojo.fromJson(msg.data);
+                    Start.grid.addRow(json);
                 }
 
                 socket.onclose = function () {
@@ -53,7 +58,7 @@ define(["dojo/_base/declare", "dojo/request/xhr", "dojo/dom-construct", "dijit/l
             createGrid:function (div) {
                 var columnMeta = [];
 
-                var columns = input.columns; // ToDo: this column info needs passing
+                var columns = ["httpQuery", "responseCode", "httpContentType", "httpProtocolVersion", "httpPath", "httpMethod", "httpUri", "httpContentEncoding", "httpCharacterEncoding"];
                 var gridata = [];
                 var row = {};
                 for (var i = 0; i < columns.length; i++) {
@@ -66,24 +71,29 @@ define(["dojo/_base/declare", "dojo/request/xhr", "dojo/dom-construct", "dijit/l
                     row[col.field] = "-";
                 }
 
-                for (var i = 0; i < 25; i++) {
+                for (var i = 0; i < 1; i++) {
                     gridata.push(row);
                 }
 
                 try {
-                    this.grid = new GridX();
-                    this.grid.setColumnMeta(columnMeta);
-                    this.grid.setData(gridata);
-                    this.grid.render(div);
+                    Start.grid = new GridX();
+                    Start.grid.setColumnMeta(columnMeta);
+                    Start.grid.setData(gridata);
+                    Start.grid.render(div);
                 } catch (e) {
                     console.log("exception = " + e);
                 }
+                
+                var testdata = {"httpQuery":null,"responseCode":0,"httpContentType":null,"httpProtocolVersion":null,"httpPath":"","httpMethod":"POST","httpUri":"/realtime","httpContentEncoding":null,"httpCharacterEncoding":null};
+                Start.grid.addRow(testdata);
 
                 this.startWebSocketReceiver();
 
             }
 
         });
+        
+        Start.grid = null;
 
         return Start;
     }

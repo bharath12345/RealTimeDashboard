@@ -54,7 +54,8 @@ define(["dojo/_base/declare", "dojo/i18n",
             },
 
             addRow:function (row) {
-                this.gridDataStore.store.add(row);
+            	console.log("adding row = " + dojo.toJson(row));
+                this.grid.store.add(row);
             },
 
             getRow:function (evt) {
