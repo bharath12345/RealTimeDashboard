@@ -7,7 +7,7 @@ define(["dojo/_base/declare", "dojo/request/xhr", "dojo/dom-construct", "dijit/l
 
             start:function () {
 
-                var topBC = new BorderContainer({
+                var topBC = dashboard.topBC = new BorderContainer({
                     design:"headline",
                     liveSplitters:false,
                     persist:true,
@@ -80,6 +80,7 @@ define(["dojo/_base/declare", "dojo/request/xhr", "dojo/dom-construct", "dijit/l
                     Start.grid.setColumnMeta(columnMeta);
                     Start.grid.setData(gridata);
                     Start.grid.render(div);
+                    dashboard.topBC.resize();
                 } catch (e) {
                     console.log("exception = " + e);
                 }
